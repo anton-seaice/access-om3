@@ -11,6 +11,7 @@ endif()
 
 ## MOM6 library
 add_fortran_library(OM3_mom6 mod STATIC)
+add_library(AccessOM3::mom6 ALIAS OM3_mom6)
 target_include_directories(OM3_mom6 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/MOM6/src/framework>)
 if(OM3_MOM_SYMMETRIC)
   target_include_directories(OM3_mom6 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/MOM6/config_src/memory/dynamic_symmetric>)
@@ -20,7 +21,7 @@ endif()
 target_compile_options(OM3_mom6 PRIVATE "$<$<COMPILE_LANGUAGE:Fortran>:${fortran_compile_flags}>")
 target_link_libraries(OM3_mom6
   PUBLIC esmf
-  PRIVATE OM3_share OM3_cmeps FMS::fms_r8 NetCDF::NetCDF_Fortran
+  PRIVATE AccessOM3::nuopc_cap_share AccessOM3::share FMS::fms_r8
 )
 target_sources(OM3_mom6 PRIVATE
   MOM6/src/ALE/coord_adapt.F90
@@ -323,3 +324,31 @@ target_sources(OM3_mom6 PRIVATE
   MOM6/config_src/drivers/nuopc_cap/time_utils.F90
 )
 add_patched_source(OM3_mom6 MOM6/config_src/drivers/nuopc_cap/mom_cap.F90)
+
+### Install and Export
+
+## Library
+if(OM3_LIB_INSTALL)
+  set_target_properties(OM3_mom6 PROPERTIES
+    OUTPUT_NAME access-mom6
+    EXPORT_NAME mom6
+  )
+  install(TARGETS OM3_mom6
+    EXPORT AccessOM3mom6_Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_RunTime NAMELINK_COMPONENT AccessOM3_Development
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_Development
+  )
+  # Fortran module files are a special case, as currently there is no standard
+  # way of handling them in CMake
+  target_include_directories(OM3_mom6 PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_MODULEDIR}/access-mom6>")
+  get_target_property(mom_moddir OM3_mom6 Fortran_MODULE_DIRECTORY)
+  install(FILES ${mom_moddir}/ocn_comp_nuopc.mod ${mom_moddir}/mom_cap_mod.mod
+    DESTINATION ${CMAKE_INSTALL_MODULEDIR}/access-mom6
+    COMPONENT AccessOM3_Development
+  )
+  install(EXPORT AccessOM3mom6_Targets
+    FILE AccessOM3mom6Targets.cmake
+    NAMESPACE AccessOM3::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AccessOM3
+  )
+endif()

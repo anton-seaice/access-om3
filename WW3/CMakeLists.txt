@@ -1,7 +1,7 @@
 ### Global definitions, flags, etc
 
 ## List of switches
-list(APPEND switches "CESMCOUPLED" "NCO" "DIST" "MPI" "PR3" "UQ" "FLX4" "SEED" "ST6" "STAB0" "NL1" "BT1" "DB1" "MLIM" "TR0" "BS0" "RWND" "WNX1" "WNT1" "CRX1" "CRT1" "O0" "O1" "O2" "O3" "O4" "O5" "O6" "O7" "O14" "O15" "IS0" "REF0" "NOGRB" "IC0")
+list(APPEND switches "CESMCOUPLED" "NCO" "DIST" "MPI" "PR1" "FLX4" "ST6" "STAB0" "LN1" "NL1" "BT1" "DB1" "MLIM" "TR0" "BS0" "RWND" "WNX1" "WNT1" "CRX1" "CRT1" "O0" "O1" "O2" "O3" "O4" "O5" "O6" "O7" "O14" "O15" "IS0" "REF0" "NOGRB" "IC0")
 
 ## Global compile definitions
 foreach(switch ${switches})
@@ -12,6 +12,7 @@ endforeach()
 
 ## WW3 library
 add_fortran_library(OM3_ww3 mod STATIC)
+add_library(AccessOM3::ww3 ALIAS OM3_ww3)
 target_compile_definitions(OM3_ww3 PRIVATE ENDIANNESS="big_endian")
 set_property(SOURCE WW3/model/src/w3initmd.F90
   APPEND
@@ -20,7 +21,6 @@ set_property(SOURCE WW3/model/src/w3initmd.F90
 )
 target_link_libraries(OM3_ww3
   PUBLIC esmf
-  PRIVATE NetCDF::NetCDF_Fortran
 )
 # Process switches and get list of extra source files
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_switches.cmake)
@@ -76,9 +76,9 @@ target_sources(OM3_ww3 PRIVATE
   WW3/model/src/wminitmd.F90
   WW3/model/src/wmiopomd.F90
   WW3/model/src/wmmdatmd.F90
+  WW3/model/src/w3wavemd.F90
   WW3/model/src/wmunitmd.F90
   WW3/model/src/wmupdtmd.F90
-  WW3/model/src/wmwavemd.F90
   WW3/model/src/w3tidemd.F90
   WW3/model/src/wav_grdout.F90
   WW3/model/src/w3iogoncdmd.F90
@@ -101,7 +101,7 @@ set_target_properties(OM3_ww3_grid PROPERTIES
   LINKER_LANGUAGE Fortran
   OUTPUT_NAME ww3_grid
 )
-target_link_libraries(OM3_ww3_grid PRIVATE OM3_ww3)
+target_link_libraries(OM3_ww3_grid PRIVATE AccessOM3::ww3)
 
 # ww3_strt
 add_executable(OM3_ww3_strt WW3/model/src/ww3_strt.F90)
@@ -109,7 +109,7 @@ set_target_properties(OM3_ww3_strt PROPERTIES
   LINKER_LANGUAGE Fortran
   OUTPUT_NAME ww3_strt
 )
-target_link_libraries(OM3_ww3_strt PRIVATE OM3_ww3)
+target_link_libraries(OM3_ww3_strt PRIVATE AccessOM3::ww3)
 
 # ww3_outf
 add_executable(OM3_ww3_outf WW3/model/src/ww3_outf.F90)
@@ -117,7 +117,7 @@ set_target_properties(OM3_ww3_outf PROPERTIES
   LINKER_LANGUAGE Fortran
   OUTPUT_NAME ww3_outf
 )
-target_link_libraries(OM3_ww3_outf PRIVATE OM3_ww3)
+target_link_libraries(OM3_ww3_outf PRIVATE AccessOM3::ww3)
 
 # ww3_ounf
 add_executable(OM3_ww3_ounf)
@@ -129,19 +129,46 @@ set_target_properties(OM3_ww3_ounf PROPERTIES
   LINKER_LANGUAGE Fortran
   OUTPUT_NAME ww3_ounf
 )
-target_link_libraries(OM3_ww3_ounf PRIVATE OM3_ww3)
+target_link_libraries(OM3_ww3_ounf PRIVATE AccessOM3::ww3)
 
-# ww3_outp
-add_executable(OM3_ww3_outp WW3/model/src/ww3_outp.F90)
-set_target_properties(OM3_ww3_outp PROPERTIES
+# ww3_ounp
+add_executable(OM3_ww3_ounp WW3/model/src/ww3_ounp.F90)
+set_target_properties(OM3_ww3_ounp PROPERTIES
   LINKER_LANGUAGE Fortran
-  OUTPUT_NAME ww3_outp
+  OUTPUT_NAME ww3_ounp
 )
-target_link_libraries(OM3_ww3_outp PRIVATE OM3_ww3)
+target_link_libraries(OM3_ww3_ounp PRIVATE AccessOM3::ww3)
 
+### Install and Export
 
-## Installs
+## Library
+if(OM3_LIB_INSTALL)
+  set_target_properties(OM3_ww3 PROPERTIES
+    OUTPUT_NAME access-ww3
+    EXPORT_NAME ww3
+  )
+  install(TARGETS OM3_ww3
+    EXPORT AccessOM3ww3_Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_RunTime NAMELINK_COMPONENT AccessOM3_Development
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_Development
+  )
+  # Fortran module files are a special case, as currently there is no standard
+  # way of handling them in CMake
+  target_include_directories(OM3_ww3 PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_MODULEDIR}/access-ww3>")
+  get_target_property(ww3_moddir OM3_ww3 Fortran_MODULE_DIRECTORY)
+  install(FILES ${ww3_moddir}/wav_comp_nuopc.mod
+    DESTINATION ${CMAKE_INSTALL_MODULEDIR}/access-ww3
+    COMPONENT AccessOM3_Development
+  )
+  install(EXPORT AccessOM3ww3_Targets
+    FILE AccessOM3ww3Targets.cmake
+    NAMESPACE AccessOM3::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AccessOM3
+  )
+endif()
+
+## Utilities
 if(OM3_BIN_INSTALL)
-  install(TARGETS OM3_ww3_grid OM3_ww3_strt OM3_ww3_ounf OM3_ww3_outp
+  install(TARGETS OM3_ww3_grid OM3_ww3_strt OM3_ww3_outf OM3_ww3_ounf OM3_ww3_ounp
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

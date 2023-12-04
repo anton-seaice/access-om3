@@ -2,13 +2,14 @@
 
 ## CICE library
 add_fortran_library(OM3_cice mod STATIC)
+add_library(AccessOM3::cice ALIAS OM3_cice)
 target_compile_definitions(OM3_cice PRIVATE FORTRANUNDERSCORE ncdf)
 if(OM3_CICE_IO MATCHES "^(NetCDF|PIO)$")
   target_compile_definitions(OM3_cice PRIVATE USE_NETCDF)
 endif()
 target_link_libraries(OM3_cice
   PUBLIC esmf
-  PRIVATE OM3_share OM3_timing OM3_cdeps_common OM3_cmeps
+  PRIVATE AccessOM3::cdeps_common AccessOM3::nuopc_cap_share AccessOM3::share AccessOM3::timing
 )
 if(OM3_CICE_IO MATCHES "^(NetCDF|PIO)$")
   target_link_libraries(OM3_cice PRIVATE NetCDF::NetCDF_Fortran)
@@ -151,4 +152,33 @@ elseif(OM3_CICE_IO MATCHES "Binary")
     CICE/cicecore/cicedyn/infrastructure/io/io_binary/ice_history_write.F90
     CICE/cicecore/cicedyn/infrastructure/io/io_binary/ice_restart.F90
   )
+endif()
+
+### Install and Export
+
+## Library
+if(OM3_LIB_INSTALL)
+  set_target_properties(OM3_cice PROPERTIES
+    OUTPUT_NAME access-cice
+    EXPORT_NAME cice
+  )
+  install(TARGETS OM3_cice
+    EXPORT AccessOM3cice_Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_RunTime NAMELINK_COMPONENT AccessOM3_Development
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT AccessOM3_Development
+  )
+  # Fortran module files are a special case, as currently there is no standard
+  # way of handling them in CMake
+  target_include_directories(OM3_cice PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_MODULEDIR}/access-cice>")
+  get_target_property(cice_moddir OM3_cice Fortran_MODULE_DIRECTORY)
+  install(FILES ${cice_moddir}/ice_comp_nuopc.mod
+    DESTINATION ${CMAKE_INSTALL_MODULEDIR}/access-cice
+    COMPONENT AccessOM3_Development
+  )
+  install(EXPORT AccessOM3cice_Targets
+    FILE AccessOM3ciceTargets.cmake
+    NAMESPACE AccessOM3::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AccessOM3
+  )
+
 endif()
