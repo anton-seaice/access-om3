@@ -23,7 +23,7 @@ option(OM3_ENABLE_WW3            "Build WW3 configuration" OFF)
 option(OM3_ENABLE_MOM6-WW3       "Build MOM6-WW3 configuration" OFF)
 option(OM3_ENABLE_MOM6-CICE6     "Build MOM6-CICE6 configuration" ON)
 option(OM3_ENABLE_CICE6-WW3      "Build CICE6-WW3 configuration" OFF)
-option(OM3_ENABLE_MOM6-CICE6-WW3 "Build MOM6-CICE6-WW3 configuration" OFF)
+option(OM3_ENABLE_MOM6-CICE6-WW3 "Build MOM6-CICE6-WW3 configuration" ON)
 
 message(STATUS "Configurations")
 message(STATUS "  - MOM6              ${OM3_ENABLE_MOM6}")
