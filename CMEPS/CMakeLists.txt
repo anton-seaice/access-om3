@@ -20,17 +20,17 @@ target_sources(OM3_cmeps PRIVATE
   CMEPS/mediator/med_phases_prep_glc_mod.F90
   CMEPS/mediator/med_internalstate_mod.F90
   CMEPS/mediator/med_phases_profile_mod.F90
-  CMEPS/mediator/esmFldsExchange_hafs_mod.F90
   CMEPS/mediator/med_phases_prep_rof_mod.F90
-  CMEPS/mediator/esmFldsExchange_cesm_mod.F90
   CMEPS/mediator/med_merge_mod.F90
   CMEPS/mediator/med_constants_mod.F90
   CMEPS/mediator/med_kind_mod.F90
-  CMEPS/mediator/esmFldsExchange_nems_mod.F90
   CMEPS/mediator/med_phases_prep_lnd_mod.F90
   CMEPS/mediator/med_phases_prep_atm_mod.F90
   CMEPS/mediator/med_phases_prep_ocn_mod.F90
   CMEPS/mediator/esmFlds.F90
+  CMEPS/mediator/esmFldsExchange_cesm_mod.F90
+  CMEPS/mediator/esmFldsExchange_hafs_mod.F90
+  CMEPS/mediator/esmFldsExchange_ufs_mod.F90
   CMEPS/mediator/med.F90
   CMEPS/mediator/med_time_mod.F90
   CMEPS/mediator/med_phases_ocnalb_mod.F90
