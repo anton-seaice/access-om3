@@ -48,9 +48,10 @@ target_sources(OM3_cice PRIVATE
   CICE/cicecore/cicedyn/analysis/ice_history_snow.F90
 
   # Dynamics
+  CICE/cicecore/cicedyn/dynamics/ice_dyn_core1d.F90
   CICE/cicecore/cicedyn/dynamics/ice_dyn_eap.F90
   CICE/cicecore/cicedyn/dynamics/ice_dyn_evp.F90
-  CICE/cicecore/cicedyn/dynamics/ice_dyn_evp_1d.F90
+  CICE/cicecore/cicedyn/dynamics/ice_dyn_evp1d.F90
   CICE/cicecore/cicedyn/dynamics/ice_dyn_shared.F90
   CICE/cicecore/cicedyn/dynamics/ice_dyn_vp.F90
   CICE/cicecore/cicedyn/dynamics/ice_transport_driver.F90

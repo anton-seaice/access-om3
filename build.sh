@@ -10,8 +10,8 @@ set -e
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"  # dir of this script
 
-# BUILD_TYPES=('Debug' 'Release')
-BUILD_TYPES=('Release')
+BUILD_TYPES=('Release') # 'Debug')
+# BUILD_TYPES=('Debug')
 COMPILER_VERSION=2021.6.0
 OPENMPI_VERSION=4.1.4
 
@@ -22,6 +22,7 @@ OPENMPI_VERSION=4.1.4
 module purge
 module load cmake/3.24.2
 module use /g/data/ik11/spack/0.20.1/modules/access-om3/0.x.0/linux-rocky8-cascadelake  # requires membership of "ik11" group
+# module use /scratch/tm70/as2285/spack-config/modules/access-om3/0.x.0_logging/linux-rocky8-cascadelake
 module load esmf/8.4.2 fms/git.2021.03.01=2021.03.01 parallelio/2.5.10 fortranxml/4.1.2
 module load intel-compiler/${COMPILER_VERSION} openmpi/${OPENMPI_VERSION}
 
@@ -31,7 +32,7 @@ for BUILD_TYPE in "${BUILD_TYPES[@]}"; do
   rm -r build || true
   INSTALL_DIR=${SCRIPT_DIR}/${BUILD_TYPE}
 
-  cmake -S . -B build --preset=gadi -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_VERBOSE_MAKEFILE=ON
+  cmake -S . -B build --preset=gadi -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_VERBOSE_MAKEFILE=ON 
   cmake --build build -j 4
   cmake --install build --prefix=${INSTALL_DIR}
 
